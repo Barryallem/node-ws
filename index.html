@@ -1,722 +1,576 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Network - Protect Earth</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>三国：山河绘卷 (Debug版)</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        :root {
-            --primary: #2e7d32;
-            --secondary: #4caf50;
-            --accent: #8bc34a;
-            --light: #e8f5e9;
-            --dark: #1b5e20;
-            --text: #333333;
-            --white: #ffffff;
-        }
-
         body {
-            background-color: var(--light);
-            color: var(--text);
-            line-height: 1.6;
+            margin: 0;
+            overflow: hidden;
+            background-color: #1e1e1e;
+            font-family: 'Microsoft YaHei', sans-serif;
+            color: white;
+            user-select: none;
         }
 
-        header {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            color: var(--white);
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        /* UI 层 */
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
         }
 
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .nav-container {
+        /* 顶部资源栏 */
+        .top-bar {
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            box-sizing: border-box;
+            border-bottom: 2px solid #c0392b;
+            pointer-events: auto;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
+        .res-group { display: flex; gap: 20px; font-size: 1.1em; font-weight: bold; align-items: center;}
+        .res-gold { color: #f1c40f; }
+        .res-pop { color: #2ecc71; }
 
-        .logo i {
-            font-size: 2rem;
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-        }
-
-        nav ul li {
-            margin-left: 2rem;
-        }
-
-        nav ul li a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            padding: 0.5rem 0;
-            position: relative;
-        }
-
-        nav ul li a:hover {
-            color: var(--accent);
-        }
-
-        nav ul li a::after {
-            content: '';
+        /* 调试面板 */
+        .debug-panel {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background-color: var(--accent);
-            transition: width 0.3s ease;
-        }
-
-        nav ul li a:hover::after {
-            width: 100%;
-        }
-
-        .hero {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2073&q=80');
-            background-size: cover;
-            background-position: center;
-            height: 80vh;
+            top: 60px; right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #f1c40f;
+            padding: 10px;
+            border-radius: 5px;
+            pointer-events: auto;
             display: flex;
-            align-items: center;
-            text-align: center;
-            color: var(--white);
+            flex-direction: column;
+            gap: 5px;
+            z-index: 999;
         }
-
-        .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .hero p {
-            font-size: 1.3rem;
-            margin-bottom: 2rem;
-        }
-
-        .btn {
-            display: inline-block;
-            background-color: var(--accent);
-            color: var(--white);
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
+        .debug-title { color: #f1c40f; font-size: 0.8em; font-weight: bold; text-align: center; margin-bottom: 5px; }
+        .debug-btn {
+            background: #444;
+            color: #fff;
+            border: 1px solid #666;
+            padding: 5px 10px;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0.9em;
+            transition: 0.2s;
         }
+        .debug-btn:hover { background: #666; }
+        .debug-btn:active { background: #f1c40f; color: black; }
 
-        .btn:hover {
-            background-color: var(--primary);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        section {
-            padding: 5rem 0;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .section-title h2 {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-            position: relative;
-            display: inline-block;
-        }
-
-        .section-title h2::after {
-            content: '';
+        /* 底部信息栏 */
+        .bottom-panel {
             position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background-color: var(--accent);
-            border-radius: 2px;
+            bottom: 0; left: 0; width: 100%;
+            height: 150px;
+            background: linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0));
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 20px;
         }
 
-        .section-title p {
-            color: var(--text);
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .about-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            align-items: center;
-        }
-
-        .about-img {
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .about-img img {
-            width: 100%;
-            height: auto;
-            display: block;
-            transition: transform 0.5s ease;
-        }
-
-        .about-img:hover img {
-            transform: scale(1.05);
-        }
-
-        .about-text h3 {
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
-            color: var(--dark);
-        }
-
-        .about-text p {
-            margin-bottom: 1.5rem;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .stat-item {
+        .city-panel {
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 15px;
+            width: 400px;
+            pointer-events: auto;
+            display: none;
             text-align: center;
-            padding: 2rem 1rem;
-            background-color: var(--white);
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
-        .stat-item:hover {
-            transform: translateY(-10px);
+        .city-title { font-size: 1.5em; margin-bottom: 10px; color: #ecf0f1; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .action-btn {
+            background: #c0392b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: 0.2s;
         }
+        .action-btn:hover { background: #e74c3c; transform: scale(1.05); }
+        .action-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
 
-        .stat-item i {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .stat-item h3 {
-            font-size: 2.5rem;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-item p {
-            color: var(--text);
-        }
-
-        .initiatives {
-            background-color: var(--white);
-        }
-
-        .initiatives-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-        }
-
-        .initiative-card {
-            background-color: var(--light);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-        }
-
-        .initiative-card:hover {
-            transform: translateY(-10px);
-        }
-
-        .initiative-img {
+        /* 浮动日志 */
+        #log-container {
+            position: absolute;
+            bottom: 160px;
+            left: 20px;
+            width: 300px;
             height: 200px;
             overflow: hidden;
-        }
-
-        .initiative-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .initiative-card:hover .initiative-img img {
-            transform: scale(1.1);
-        }
-
-        .initiative-content {
-            padding: 1.5rem;
-        }
-
-        .initiative-content h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--dark);
-        }
-
-        .initiative-content p {
-            margin-bottom: 1.5rem;
-        }
-
-        .cta {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            color: var(--white);
-            text-align: center;
-            padding: 5rem 0;
-        }
-
-        .cta h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .cta p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .cta .btn {
-            background-color: var(--white);
-            color: var(--primary);
-        }
-
-        .cta .btn:hover {
-            background-color: var(--accent);
-            color: var(--white);
-        }
-
-        footer {
-            background-color: var(--dark);
-            color: var(--white);
-            padding: 3rem 0 1rem;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .footer-column h3 {
-            font-size: 1.3rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 10px;
-        }
-
-        .footer-column h3::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 40px;
-            height: 2px;
-            background-color: var(--accent);
-        }
-
-        .footer-column p {
-            margin-bottom: 1rem;
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.8rem;
-        }
-
-        .footer-links li a {
-            color: var(--light);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .footer-links li a:hover {
-            color: var(--accent);
-            padding-left: 5px;
-        }
-
-        .social-links {
+            pointer-events: none;
             display: flex;
-            gap: 1rem;
+            flex-direction: column-reverse;
         }
+        .log-msg {
+            background: rgba(0,0,0,0.5);
+            color: #ddd;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            animation: fadeOut 10s forwards;
+        }
+        .log-debug { color: #f1c40f; font-weight: bold; }
+        @keyframes fadeOut { 0% {opacity:1;} 80% {opacity:1;} 100% {opacity:0;} }
 
-        .social-links a {
-            display: inline-flex;
-            align-items: center;
+        /* 教程遮罩 */
+        #tutorial {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
             justify-content: center;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            color: var(--white);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .social-links a:hover {
-            background-color: var(--accent);
-            transform: translateY(-5px);
-        }
-
-        .copyright {
+            align-items: center;
+            z-index: 100;
+            pointer-events: auto;
             text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
+        #start-btn {
+            margin-top: 30px; padding: 15px 40px; font-size: 1.5em;
+            background: #c0392b; color: white; border: 2px solid #e74c3c; border-radius: 50px; cursor: pointer;
+        }
+        #start-btn:hover { background: #e74c3c; }
 
-        .mobile-menu {
-            display: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        @media (max-width: 992px) {
-            .about-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .initiatives-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .footer-content {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .hero p {
-                font-size: 1.1rem;
-            }
-            
-            nav ul {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                width: 100%;
-                background-color: var(--primary);
-                flex-direction: column;
-                padding: 1rem 0;
-                text-align: center;
-                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-            }
-            
-            nav ul.active {
-                display: flex;
-            }
-            
-            nav ul li {
-                margin: 0;
-                padding: 0.8rem 0;
-            }
-            
-            .mobile-menu {
-                display: block;
-            }
-            
-            .initiatives-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .footer-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Animation for stats counter */
-        .counter {
-            transition: all 0.5s ease;
-        }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="container nav-container">
-            <div class="logo">
-                <i class="fas fa-seedling"></i>
-                <span>Green Network</span>
-            </div>
-            <nav>
-                <div class="mobile-menu">
-                    <i class="fas fa-bars"></i>
-                </div>
-                <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#initiatives">Initiatives</a></li>
-                    <li><a href="#get-involved">Get Involved</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
 
-    <!-- Hero Section -->
-    <section class="hero" id="home">
-        <div class="container hero-content">
-            <h1>Protect Our Planet, Preserve Our Future</h1>
-            <p>Join the global movement to create a sustainable world through conservation, education, and community action.</p>
-            <a href="#get-involved" class="btn">Join Our Network</a>
-        </div>
-    </section>
+<canvas id="gameCanvas"></canvas>
 
-    <!-- About Section -->
-    <section id="about">
-        <div class="container">
-            <div class="section-title">
-                <h2>About Green Network</h2>
-                <p>We are a global community dedicated to environmental protection and sustainable development.</p>
+<div id="ui-layer">
+    <div class="top-bar">
+        <div class="res-group" style="color: #e74c3c">
+            <span>势力: 刘备 (蜀)</span>
+        </div>
+        <div class="res-group">
+            <span class="res-gold">💰 <span id="total-gold">0</span></span>
+            <span class="res-pop">⚔️ <span id="total-troops">0</span></span>
+        </div>
+        <div class="res-group" style="color: #aaa">
+            <span id="game-time">公元 190 年 1 月</span>
+        </div>
+    </div>
+
+    <div class="debug-panel">
+        <div class="debug-title">🛠️ 开发者指令</div>
+        <button class="debug-btn" onclick="game.debugAddGold()">💰 增加 100 黄金</button>
+        <button class="debug-btn" onclick="game.debugAddTroops()">⚔️ 增加 100 兵力</button>
+        <button class="debug-btn" onclick="game.debugClearFog()" style="color:#aaa; font-size:0.8em;">(提示:兵力需选中城池)</button>
+    </div>
+
+    <div id="log-container"></div>
+
+    <div class="bottom-panel">
+        <div class="city-panel" id="city-panel">
+            <div class="city-title" id="cp-name">洛阳</div>
+            <div style="display:flex; justify-content:space-around; margin-bottom:10px;">
+                <div>守军: <span id="cp-troops" style="color:#e74c3c; font-weight:bold;">0</span></div>
+                <div>产出: <span id="cp-income" style="color:#f1c40f">0</span>/秒</div>
+                <div>等级: <span id="cp-level">1</span></div>
             </div>
-            <div class="about-content">
-                <div class="about-img">
-                    <img src="https://images.unsplash.com/photo-1507591064344-4c6ce005b128?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Team planting trees">
-                </div>
-                <div class="about-text">
-                    <h3>Our Mission</h3>
-                    <p>Green Network is committed to creating a sustainable future by protecting natural ecosystems, promoting renewable energy, and empowering communities to take environmental action.</p>
-                    <p>Founded in 2010, we've grown from a small grassroots organization to an international network with over 50,000 members across 120 countries.</p>
-                    <p>Our approach combines scientific research, community engagement, and policy advocacy to address the most pressing environmental challenges of our time.</p>
-                    <a href="#" class="btn">Learn More</a>
-                </div>
+            <div>
+                <button class="action-btn" id="btn-upgrade" onclick="game.upgradeCity()">🏰 扩建 (-200金)</button>
+                <button class="action-btn" id="btn-draft" onclick="game.draftSoldiers()">⚔️ 征兵 (-50金)</button>
             </div>
-            <div class="stats">
-                <div class="stat-item">
-                    <i class="fas fa-tree"></i>
-                    <h3 class="counter" data-target="2500000">0</h3>
-                    <p>Trees Planted</p>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-users"></i>
-                    <h3 class="counter" data-target="50000">0</h3>
-                    <p>Active Members</p>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-globe-americas"></i>
-                    <h3 class="counter" data-target="120">0</h3>
-                    <p>Countries Reached</p>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-recycle"></i>
-                    <h3 class="counter" data-target="1500">0</h3>
-                    <p>Cleanup Projects</p>
-                </div>
+            <div style="font-size:0.8em; color:#888; margin-top:5px;">
+                提示：拖拽城池连线即可出兵
             </div>
         </div>
-    </section>
+    </div>
+</div>
 
-    <!-- Initiatives Section -->
-    <section class="initiatives" id="initiatives">
-        <div class="container">
-            <div class="section-title">
-                <h2>Our Initiatives</h2>
-                <p>Discover the key programs and projects we're implementing to protect our planet.</p>
-            </div>
-            <div class="initiatives-grid">
-                <div class="initiative-card">
-                    <div class="initiative-img">
-                        <img src="https://dialogue.earth/content/uploads/2021/04/lessons-from-the-rush-to-reforest-china-dialogue-2400x1599.jpg" alt="Reforestation">
-                    </div>
-                    <div class="initiative-content">
-                        <h3>Global Reforestation</h3>
-                        <p>Planting millions of trees worldwide to restore ecosystems, combat climate change, and protect biodiversity.</p>
-                        <a href="#" class="btn">Learn More</a>
-                    </div>
-                </div>
-                <div class="initiative-card">
-                    <div class="initiative-img">
-                        <img src="https://images.unsplash.com/photo-1621451537084-482c73073a0f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80" alt="Ocean Conservation">
-                    </div>
-                    <div class="initiative-content">
-                        <h3>Ocean Conservation</h3>
-                        <p>Protecting marine ecosystems, reducing plastic pollution, and promoting sustainable fishing practices.</p>
-                        <a href="#" class="btn">Learn More</a>
-                    </div>
-                </div>
-                <div class="initiative-card">
-                    <div class="initiative-img">
-                        <img src="https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80" alt="Renewable Energy">
-                    </div>
-                    <div class="initiative-content">
-                        <h3>Renewable Energy</h3>
-                        <p>Promoting solar, wind, and other clean energy sources to reduce dependence on fossil fuels.</p>
-                        <a href="#" class="btn">Learn More</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<div id="tutorial">
+    <h1 style="color:#c0392b; font-size:3em; margin-bottom:10px;">三国：山河绘卷</h1>
+    <p style="color:#ccc; font-size:1.2em;">
+        拖拽城池 -> 连接敌城 -> 出兵征服<br>
+        <span style="color:#f1c40f">右上角已开启开发者调试模式</span>
+    </p>
+    <button id="start-btn" onclick="game.start()">开始征战</button>
+</div>
 
-    <!-- CTA Section -->
-    <section class="cta" id="get-involved">
-        <div class="container">
-            <h2>Join Our Global Movement</h2>
-            <p>Together, we can create a sustainable future for generations to come. Every action counts, no matter how small.</p>
-            <a href="#" class="btn">Become a Member</a>
-        </div>
-    </section>
+<script>
+    /* --- 游戏核心逻辑 --- */
+    
+    const FACTIONS = {
+        NEUTRAL: { id: 0, color: '#7f8c8d', name: '中立' },
+        PLAYER:  { id: 1, color: '#e74c3c', name: '刘备', bg: 'rgba(231, 76, 60, 0.2)' },
+        CAO:     { id: 2, color: '#3498db', name: '曹操', bg: 'rgba(52, 152, 219, 0.2)' },
+        SUN:     { id: 3, color: '#2ecc71', name: '孙权', bg: 'rgba(46, 204, 113, 0.2)' }
+    };
 
-    <!-- Footer -->
-    <footer id="contact">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-column">
-                    <h3>Green Network</h3>
-                    <p>We are dedicated to protecting our planet through collaborative action, education, and sustainable solutions.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                </div>
-                <div class="footer-column">
-                    <h3>Quick Links</h3>
-                    <ul class="footer-links">
-                        <li><a href="#home">Home</a></li>
-                        <li><a href="#about">About Us</a></li>
-                        <li><a href="#initiatives">Initiatives</a></li>
-                        <li><a href="#get-involved">Get Involved</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Our Programs</h3>
-                    <ul class="footer-links">
-                        <li><a href="#">Reforestation</a></li>
-                        <li><a href="#">Ocean Cleanup</a></li>
-                        <li><a href="#">Wildlife Protection</a></li>
-                        <li><a href="#">Climate Education</a></li>
-                        <li><a href="#">Sustainable Agriculture</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Contact Us</h3>
-                    <p><i class="fas fa-map-marker-alt"></i> Copper Creek Drive, New York</p>
-                    <p><i class="fas fa-phone"></i> +1 (312) 171-0771</p>
-                    <p><i class="fas fa-envelope"></i> support@greennetwork.org</p>
-                </div>
-            </div>
-            <div class="copyright">
-                <p>&copy; 2025 Green Network. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    const CITIES_DATA = [
+        { id: 'beiping', name: '北平', x: 1200, y: 150, troops: 50 },
+        { id: 'ye', name: '邺城', x: 1100, y: 300, troops: 100 },
+        { id: 'jinyang', name: '晋阳', x: 900, y: 250, troops: 60 },
+        { id: 'luoyang', name: '洛阳', x: 950, y: 450, troops: 200 },
+        { id: 'xuchang', name: '许昌', x: 1050, y: 500, troops: 150 },
+        { id: 'changan', name: '长安', x: 750, y: 450, troops: 180 },
+        { id: 'wan', name: '宛城', x: 900, y: 580, troops: 80 },
+        { id: 'xiapi', name: '下邳', x: 1250, y: 500, troops: 100 },
+        { id: 'shouchun', name: '寿春', x: 1200, y: 600, troops: 100 },
+        { id: 'jianye', name: '建业', x: 1350, y: 700, troops: 150 },
+        { id: 'hanzhong', name: '汉中', x: 600, y: 500, troops: 100 },
+        { id: 'chengdu', name: '成都', x: 500, y: 700, troops: 150 },
+        { id: 'jingzhou', name: '荆州', x: 950, y: 700, troops: 150 },
+        { id: 'changsha', name: '长沙', x: 1000, y: 850, troops: 80 },
+        { id: 'chaiSang', name: '柴桑', x: 1150, y: 750, troops: 100 }
+    ];
 
-    <script>
-        // Mobile Menu Toggle
-        document.querySelector('.mobile-menu').addEventListener('click', function() {
-            document.querySelector('nav ul').classList.toggle('active');
-        });
+    const ROADS = [
+        ['beiping', 'ye'], ['ye', 'jinyang'], ['ye', 'luoyang'], ['ye', 'xuchang'], ['ye', 'xiapi'],
+        ['jinyang', 'luoyang'], ['jinyang', 'changan'], ['luoyang', 'changan'], ['luoyang', 'xuchang'], ['luoyang', 'wan'],
+        ['changan', 'hanzhong'], ['changan', 'wan'], ['xuchang', 'xiapi'], ['xuchang', 'shouchun'], ['xuchang', 'wan'],
+        ['xiapi', 'shouchun'], ['shouchun', 'jianye'], ['shouchun', 'wan'], ['shouchun', 'chaiSang'],
+        ['jianye', 'chaiSang'], ['wan', 'jingzhou'], ['hanzhong', 'chengdu'], ['chengdu', 'jingzhou'],
+        ['jingzhou', 'changsha'], ['jingzhou', 'chaiSang'], ['chaiSang', 'changsha']
+    ];
 
-        // Counter Animation
-        function animateCounters() {
-            const counters = document.querySelectorAll('.counter');
-            const speed = 200; // The lower the slower
-            
-            counters.forEach(counter => {
-                const target = +counter.getAttribute('data-target');
-                const count = +counter.innerText;
-                
-                const inc = target / speed;
-                
-                if(count < target) {
-                    counter.innerText = Math.ceil(count + inc);
-                    setTimeout(animateCounters, 1);
-                } else {
-                    counter.innerText = target;
-                }
-            });
+    class City {
+        constructor(data) {
+            this.id = data.id;
+            this.name = data.name;
+            this.baseX = data.x;
+            this.baseY = data.y;
+            this.x = 0; this.y = 0;
+            this.faction = FACTIONS.NEUTRAL;
+            this.troops = data.troops;
+            this.maxTroops = 500;
+            this.level = 1;
+            this.troopAccumulator = 0;
+
+            if (this.id === 'chengdu') this.setFaction(FACTIONS.PLAYER);
+            if (this.id === 'hanzhong') this.setFaction(FACTIONS.PLAYER);
+            if (this.id === 'xuchang' || this.id === 'luoyang' || this.id === 'ye') this.setFaction(FACTIONS.CAO);
+            if (this.id === 'jianye' || this.id === 'chaiSang') this.setFaction(FACTIONS.SUN);
         }
 
-        // Initialize counters when page loads
-        window.addEventListener('load', animateCounters);
+        setFaction(faction) {
+            this.faction = faction;
+            this.troops = Math.max(this.troops, 100);
+        }
 
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const targetId = this.getAttribute('href');
-                if(targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if(targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 80,
-                        behavior: 'smooth'
-                    });
-                    
-                    document.querySelector('nav ul').classList.remove('active');
+        update(dt) {
+            if (this.faction === FACTIONS.NEUTRAL) return;
+            const troopRate = 0.5 * this.level; 
+            this.troopAccumulator += troopRate * dt;
+            if (this.troopAccumulator >= 1) {
+                const add = Math.floor(this.troopAccumulator);
+                if (this.troops < this.maxTroops * this.level) {
+                    this.troops += add;
+                }
+                this.troopAccumulator -= add;
+            }
+            if (this.faction === FACTIONS.PLAYER) {
+                game.playerGold += 2 * this.level * dt;
+            }
+        }
+
+        draw(ctx) {
+            if (this.faction !== FACTIONS.NEUTRAL) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 40 + this.troops/20, 0, Math.PI * 2);
+                ctx.fillStyle = this.faction.bg;
+                ctx.fill();
+            }
+            if (game.selectedCity === this) {
+                ctx.beginPath(); ctx.arc(this.x, this.y, 25, 0, Math.PI * 2);
+                ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
+            }
+            ctx.beginPath(); ctx.arc(this.x, this.y, 15, 0, Math.PI * 2);
+            ctx.fillStyle = this.faction.color; ctx.fill();
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+
+            ctx.fillStyle = "#fff"; ctx.font = "bold 14px Microsoft YaHei"; ctx.textAlign = "center";
+            ctx.fillText(this.name, this.x, this.y - 25);
+            
+            ctx.fillStyle = "#000"; ctx.fillRect(this.x - 20, this.y + 20, 40, 6);
+            ctx.fillStyle = this.faction.color;
+            const pct = Math.min(1, this.troops / (this.maxTroops * this.level));
+            ctx.fillRect(this.x - 20, this.y + 20, 40 * pct, 6);
+            ctx.font = "10px Arial"; ctx.fillText(Math.floor(this.troops), this.x, this.y + 38);
+        }
+    }
+
+    class Army {
+        constructor(from, to, count, faction) {
+            this.from = from; this.to = to; this.count = Math.floor(count); this.faction = faction;
+            this.progress = 0; this.speed = 0.08; this.arrived = false;
+        }
+        update(dt) {
+            this.progress += this.speed * dt;
+            if (this.progress >= 1) { this.progress = 1; this.arrived = true; return true; }
+            return false;
+        }
+        draw(ctx) {
+            const dx = this.to.x - this.from.x; const dy = this.to.y - this.from.y;
+            const cx = this.from.x + dx * this.progress; const cy = this.from.y + dy * this.progress;
+            ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+            ctx.fillStyle = this.faction.color; ctx.fill();
+            ctx.strokeStyle = "white"; ctx.lineWidth = 1; ctx.stroke();
+            ctx.fillStyle = "white"; ctx.font = "10px Arial"; ctx.fillText(this.count, cx, cy - 12);
+        }
+    }
+
+    const game = {
+        canvas: document.getElementById('gameCanvas'),
+        ctx: document.getElementById('gameCanvas').getContext('2d'),
+        cities: [], armies: [],
+        scaleX: 1, scaleY: 1, lastTime: 0,
+        playerGold: 500,
+        selectedCity: null,
+        isDragging: false, dragStartCity: null, dragX: 0, dragY: 0,
+        isPlaying: false, timeElapsed: 0, aiTimer: 0,
+
+        init: function() {
+            this.resize();
+            window.addEventListener('resize', () => this.resize());
+            CITIES_DATA.forEach(data => this.cities.push(new City(data)));
+            this.updateCityPositions();
+            this.canvas.addEventListener('mousedown', e => this.onMouseDown(e));
+            this.canvas.addEventListener('mousemove', e => this.onMouseMove(e));
+            this.canvas.addEventListener('mouseup', e => this.onMouseUp(e));
+        },
+
+        start: function() {
+            document.getElementById('tutorial').style.display = 'none';
+            this.isPlaying = true;
+            this.lastTime = performance.now();
+            requestAnimationFrame(t => this.loop(t));
+            this.log("游戏开始！目标：统一天下");
+        },
+
+        loop: function(t) {
+            if (!this.isPlaying) return;
+            const dt = (t - this.lastTime) / 1000;
+            this.lastTime = t;
+            this.update(dt);
+            this.draw();
+            requestAnimationFrame(t => this.loop(t));
+        },
+
+        update: function(dt) {
+            this.timeElapsed += dt;
+            const totalMonths = Math.floor(this.timeElapsed / 2);
+            const year = 190 + Math.floor(totalMonths / 12);
+            const month = (totalMonths % 12) + 1;
+            document.getElementById('game-time').innerText = `公元 ${year} 年 ${month} 月`;
+
+            let pTroops = 0;
+            this.cities.forEach(c => {
+                c.update(dt);
+                if (c.faction === FACTIONS.PLAYER) pTroops += c.troops;
+            });
+            document.getElementById('total-gold').innerText = Math.floor(this.playerGold);
+            document.getElementById('total-troops').innerText = Math.floor(pTroops);
+            
+            if (this.selectedCity) {
+                document.getElementById('cp-troops').innerText = Math.floor(this.selectedCity.troops);
+                document.getElementById('cp-income').innerText = (2 * this.selectedCity.level);
+                document.getElementById('cp-level').innerText = this.selectedCity.level;
+                const upgradeCost = 200 * this.selectedCity.level;
+                document.getElementById('btn-upgrade').innerText = `🏰 扩建 (-${upgradeCost}金)`;
+                document.getElementById('btn-upgrade').disabled = this.playerGold < upgradeCost || this.selectedCity.faction !== FACTIONS.PLAYER;
+                document.getElementById('btn-draft').disabled = this.playerGold < 50 || this.selectedCity.faction !== FACTIONS.PLAYER;
+            }
+
+            for (let i = this.armies.length - 1; i >= 0; i--) {
+                if (this.armies[i].update(dt)) {
+                    this.resolveBattle(this.armies[i]);
+                    this.armies.splice(i, 1);
+                }
+            }
+
+            this.aiTimer += dt;
+            if (this.aiTimer > 2) { this.aiTimer = 0; this.runAI(); }
+        },
+
+        draw: function() {
+            this.ctx.fillStyle = "#1e1e1e"; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.strokeStyle = "#444"; this.ctx.lineWidth = 2; this.ctx.beginPath();
+            ROADS.forEach(pair => {
+                const c1 = this.getCity(pair[0]); const c2 = this.getCity(pair[1]);
+                if (c1 && c2) { this.ctx.moveTo(c1.x, c1.y); this.ctx.lineTo(c2.x, c2.y); }
+            });
+            this.ctx.stroke();
+            if (this.isDragging && this.dragStartCity) {
+                this.ctx.beginPath(); this.ctx.moveTo(this.dragStartCity.x, this.dragStartCity.y);
+                this.ctx.lineTo(this.dragX, this.dragY);
+                this.ctx.strokeStyle = "#fff"; this.ctx.setLineDash([5, 5]); this.ctx.stroke(); this.ctx.setLineDash([]);
+            }
+            this.cities.forEach(c => c.draw(this.ctx));
+            this.armies.forEach(a => a.draw(this.ctx));
+        },
+
+        /* --- Debug 功能 --- */
+        debugAddGold: function() {
+            this.playerGold += 100;
+            this.log("【作弊】国库充盈！获得 100 黄金", "debug");
+        },
+        debugAddTroops: function() {
+            if (this.selectedCity) {
+                this.selectedCity.troops += 100;
+                this.log(`【作弊】天兵降临！${this.selectedCity.name} 增加 100 兵力`, "debug");
+            } else {
+                alert("请先用鼠标点击选择一座城池！");
+            }
+        },
+        debugClearFog: function() {
+            // 占位
+        },
+
+        /* --- 其他逻辑 --- */
+        resolveBattle: function(army) {
+            const target = army.to;
+            if (target.faction === army.faction) {
+                target.troops += army.count;
+                this.log(`${army.faction.name} 增援 ${target.name} +${army.count}`);
+            } else {
+                const atk = army.count * (1 + Math.random() * 0.2);
+                const def = target.troops * (1 + (target.level * 0.2));
+                if (atk > def) {
+                    const remain = Math.floor(atk - def);
+                    target.setFaction(army.faction);
+                    target.troops = remain;
+                    target.level = Math.max(1, target.level - 1);
+                    this.log(`【大捷】${army.faction.name} 占领 ${target.name}！`);
+                    this.checkWin();
+                } else {
+                    target.troops -= Math.floor(atk * 0.8);
+                    if (target.troops < 0) target.troops = 0;
+                }
+            }
+        },
+
+        runAI: function() {
+            this.cities.forEach(city => {
+                if (city.faction === FACTIONS.CAO || city.faction === FACTIONS.SUN) {
+                    if (city.level < 3 && Math.random() < 0.05) city.level++;
+                    if (city.troops > 150) {
+                        const neighbors = this.getNeighbors(city);
+                        let target = null;
+                        neighbors.forEach(n => { if (n.faction !== city.faction && n.troops < city.troops * 0.8) target = n; });
+                        if (!target && city.troops > 300) {
+                            neighbors.forEach(n => { if (n.faction === city.faction && n.troops < 100) target = n; });
+                        }
+                        if (target) this.sendTroops(city, target);
+                    }
                 }
             });
-        });
-    </script>
-</body>
+        },
 
+        onMouseDown: function(e) {
+            const {x, y} = this.getMousePos(e);
+            const city = this.getCityAt(x, y);
+            if (city) {
+                this.selectedCity = city;
+                this.updatePanel(city);
+                if (city.faction === FACTIONS.PLAYER) {
+                    this.isDragging = true; this.dragStartCity = city; this.dragX = x; this.dragY = y;
+                }
+            } else {
+                this.selectedCity = null;
+                document.getElementById('city-panel').style.display = 'none';
+            }
+        },
+        onMouseMove: function(e) {
+            const {x, y} = this.getMousePos(e);
+            this.dragX = x; this.dragY = y;
+            if (this.getCityAt(x, y)) this.canvas.style.cursor = 'pointer';
+            else this.canvas.style.cursor = 'default';
+        },
+        onMouseUp: function(e) {
+            if (this.isDragging && this.dragStartCity) {
+                const {x, y} = this.getMousePos(e);
+                const targetCity = this.getCityAt(x, y);
+                if (targetCity && targetCity !== this.dragStartCity && this.isConnected(this.dragStartCity, targetCity)) {
+                    this.sendTroops(this.dragStartCity, targetCity);
+                }
+            }
+            this.isDragging = false; this.dragStartCity = null;
+        },
+
+        sendTroops: function(from, to) {
+            if (from.troops < 20) return;
+            const amount = Math.floor(from.troops * 0.5);
+            from.troops -= amount;
+            this.armies.push(new Army(from, to, amount, from.faction));
+        },
+        upgradeCity: function() {
+            if (!this.selectedCity) return;
+            const cost = 200 * this.selectedCity.level;
+            if (this.playerGold >= cost) {
+                this.playerGold -= cost; this.selectedCity.level++;
+                this.log(`${this.selectedCity.name} 扩建完成！`);
+            }
+        },
+        draftSoldiers: function() {
+            if (!this.selectedCity) return;
+            if (this.playerGold >= 50) {
+                this.playerGold -= 50; this.selectedCity.troops += 20;
+                this.log(`征兵完成！`);
+            }
+        },
+
+        resize: function() {
+            this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight;
+            this.scaleX = this.canvas.width / 1920; this.scaleY = this.canvas.height / 1080;
+            this.updateCityPositions();
+        },
+        updateCityPositions: function() {
+            this.cities.forEach(c => { c.x = c.baseX * this.scaleX; c.y = c.baseY * this.scaleY; });
+        },
+        getMousePos: function(e) {
+            const rect = this.canvas.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        },
+        getCity: function(id) { return this.cities.find(c => c.id === id); },
+        getCityAt: function(x, y) { return this.cities.find(c => (c.x-x)**2 + (c.y-y)**2 < 900); },
+        getNeighbors: function(city) {
+            const neighbors = [];
+            ROADS.forEach(pair => {
+                if (pair[0] === city.id) neighbors.push(this.getCity(pair[1]));
+                if (pair[1] === city.id) neighbors.push(this.getCity(pair[0]));
+            }); return neighbors;
+        },
+        isConnected: function(c1, c2) {
+            return ROADS.some(pair => (pair[0] === c1.id && pair[1] === c2.id) || (pair[0] === c2.id && pair[1] === c1.id));
+        },
+        updatePanel: function(city) {
+            document.getElementById('city-panel').style.display = 'block';
+            document.getElementById('cp-name').innerText = city.name;
+        },
+        log: function(msg, type) {
+            const box = document.getElementById('log-container');
+            const div = document.createElement('div');
+            div.className = 'log-msg ' + (type === 'debug' ? 'log-debug' : '');
+            div.innerText = msg;
+            box.prepend(div);
+        },
+        checkWin: function() {
+            const pCities = this.cities.filter(c => c.faction === FACTIONS.PLAYER).length;
+            if (pCities === this.cities.length) { alert("天下统一！"); location.reload(); }
+            else if (pCities === 0) { alert("败局已定..."); location.reload(); }
+        }
+    };
+
+    game.init();
+</script>
+</body>
 </html>
